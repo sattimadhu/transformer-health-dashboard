@@ -23,7 +23,6 @@ export default function WeatherPage() {
   const [cities, setCities] = useState([]);
   const [transformers, setTransformers] = useState([]);
 
-  // Memoized fetchWeatherData function to avoid dependency issues
   const fetchWeatherData = useCallback(async (city) => {
     setLoading(true);
     setError(null);
@@ -40,45 +39,44 @@ export default function WeatherPage() {
 
   // Fetch transformer data from Firebase to get cities
   useEffect(() => {
-    const unsubscribe = firebaseService.subscribeToTransformerList((transformerIds) => {
-      if (transformerIds.length > 0) {
-        const transformerDataPromises = transformerIds.map(id => 
-          new Promise((resolve) => {
-            firebaseService.subscribeToTransformerData(id, (data) => {
-              if (data && data.city) {
-                resolve({ id, city: data.city });
-              } else {
-                resolve(null);
-              }
+    const unsubscribe = firebaseService.subscribeToAllTransformersData((transformersData) => {
+      if (transformersData) {
+        const transformerList = Object.keys(transformersData);
+        const citiesList = [];
+        const transformersWithCities = [];
+        
+        transformerList.forEach(transformerId => {
+          const transformer = transformersData[transformerId];
+          if (transformer && transformer.city) {
+            citiesList.push(transformer.city);
+            transformersWithCities.push({
+              id: transformerId,
+              city: transformer.city
             });
-          })
-        );
-
-        Promise.all(transformerDataPromises).then(results => {
-          const validResults = results.filter(result => result !== null);
-          const uniqueCities = [...new Set(validResults.map(result => result.city))];
-          
-          setTransformers(validResults);
-          setCities(uniqueCities);
-          
-          // Set default city to the first available city
-          if (uniqueCities.length > 0 && !selectedCity) {
-            setSelectedCity(uniqueCities[0]);
-            fetchWeatherData(uniqueCities[0]);
           }
         });
+        
+        const uniqueCities = [...new Set(citiesList)];
+        setTransformers(transformersWithCities);
+        setCities(uniqueCities);
+        
+        // Set default city to the first available city
+        if (uniqueCities.length > 0 && !selectedCity) {
+          setSelectedCity(uniqueCities[0]);
+          fetchWeatherData(uniqueCities[0]);
+        }
       }
     });
 
     return () => unsubscribe();
-  }, [selectedCity, fetchWeatherData]); // Added dependencies
+  }, [selectedCity, fetchWeatherData]);
 
   // Fetch weather data when selected city changes
   useEffect(() => {
     if (selectedCity) {
       fetchWeatherData(selectedCity);
     }
-  }, [selectedCity, fetchWeatherData]); // Added fetchWeatherData dependency
+  }, [selectedCity, fetchWeatherData]);
 
   const handleCityChange = (event) => {
     const newCity = event.target.value;

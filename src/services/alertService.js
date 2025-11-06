@@ -1,12 +1,11 @@
 const ALERT_THRESHOLDS = {
   Temperature: { warning: 80, danger: 100 },
   OilLevel: { warning: 85, danger: 70 },
-  OilMoisture: { warning: 15, danger: 20 },
-  H2: { warning: 30, danger: 50 },
-  CO: { warning: 50, danger: 80 },
-  CH4: { warning: 25, danger: 40 },
-  Voltage: { warning: { min: 10, max: 13 }, danger: { min: 9, max: 14 } },
-  Current: { warning: 4, danger: 5 }
+  OutputVoltage: { warning: { min: 30, max: 35 }, danger: { min: 25, max: 40 } },
+  OutputCurrent: { warning: 0.15, danger: 0.2 },
+  H2: { warning: 0.02, danger: 0.05 },
+  CO: { warning: 0.03, danger: 0.06 },
+  CH4: { warning: 0.03, danger: 0.06 }
 };
 
 export class AlertService {
@@ -14,7 +13,15 @@ export class AlertService {
     if (!transformerData) return [];
     
     const alerts = [];
-    const { Temperature, OilLevel, OilMoisture, H2, CO, CH4, Voltage, Current } = transformerData;
+    const { 
+      Temperature, 
+      OilLevel, 
+      OutputVoltage, 
+      OutputCurrent, 
+      H2, 
+      CO, 
+      CH4 
+    } = transformerData;
 
     // Temperature alerts
     if (Temperature >= ALERT_THRESHOLDS.Temperature.danger) {
@@ -54,21 +61,40 @@ export class AlertService {
       });
     }
 
-    // Oil Moisture alerts
-    if (OilMoisture >= ALERT_THRESHOLDS.OilMoisture.danger) {
+    // Voltage alerts
+    if (OutputVoltage < ALERT_THRESHOLDS.OutputVoltage.danger.min || OutputVoltage > ALERT_THRESHOLDS.OutputVoltage.danger.max) {
       alerts.push({
-        parameter: 'OilMoisture',
+        parameter: 'OutputVoltage',
         severity: 'error',
-        message: `Critical: High oil moisture (${OilMoisture}%)`,
-        value: OilMoisture,
+        message: `Critical: Voltage out of range (${OutputVoltage} V)`,
+        value: OutputVoltage,
         timestamp: new Date()
       });
-    } else if (OilMoisture >= ALERT_THRESHOLDS.OilMoisture.warning) {
+    } else if (OutputVoltage < ALERT_THRESHOLDS.OutputVoltage.warning.min || OutputVoltage > ALERT_THRESHOLDS.OutputVoltage.warning.max) {
       alerts.push({
-        parameter: 'OilMoisture',
+        parameter: 'OutputVoltage',
         severity: 'warning',
-        message: `Warning: Elevated oil moisture (${OilMoisture}%)`,
-        value: OilMoisture,
+        message: `Warning: Voltage deviation (${OutputVoltage} V)`,
+        value: OutputVoltage,
+        timestamp: new Date()
+      });
+    }
+
+    // Current alerts
+    if (OutputCurrent >= ALERT_THRESHOLDS.OutputCurrent.danger) {
+      alerts.push({
+        parameter: 'OutputCurrent',
+        severity: 'error',
+        message: `Critical: High current (${OutputCurrent} A)`,
+        value: OutputCurrent,
+        timestamp: new Date()
+      });
+    } else if (OutputCurrent >= ALERT_THRESHOLDS.OutputCurrent.warning) {
+      alerts.push({
+        parameter: 'OutputCurrent',
+        severity: 'warning',
+        message: `Warning: Elevated current (${OutputCurrent} A)`,
+        value: OutputCurrent,
         timestamp: new Date()
       });
     }
@@ -97,44 +123,6 @@ export class AlertService {
         });
       }
     });
-
-    // Voltage alerts
-    if (Voltage < ALERT_THRESHOLDS.Voltage.danger.min || Voltage > ALERT_THRESHOLDS.Voltage.danger.max) {
-      alerts.push({
-        parameter: 'Voltage',
-        severity: 'error',
-        message: `Critical: Voltage out of range (${Voltage} kV)`,
-        value: Voltage,
-        timestamp: new Date()
-      });
-    } else if (Voltage < ALERT_THRESHOLDS.Voltage.warning.min || Voltage > ALERT_THRESHOLDS.Voltage.warning.max) {
-      alerts.push({
-        parameter: 'Voltage',
-        severity: 'warning',
-        message: `Warning: Voltage deviation (${Voltage} kV)`,
-        value: Voltage,
-        timestamp: new Date()
-      });
-    }
-
-    // Current alerts
-    if (Current >= ALERT_THRESHOLDS.Current.danger) {
-      alerts.push({
-        parameter: 'Current',
-        severity: 'error',
-        message: `Critical: High current (${Current} A)`,
-        value: Current,
-        timestamp: new Date()
-      });
-    } else if (Current >= ALERT_THRESHOLDS.Current.warning) {
-      alerts.push({
-        parameter: 'Current',
-        severity: 'warning',
-        message: `Warning: Elevated current (${Current} A)`,
-        value: Current,
-        timestamp: new Date()
-      });
-    }
 
     return alerts;
   }

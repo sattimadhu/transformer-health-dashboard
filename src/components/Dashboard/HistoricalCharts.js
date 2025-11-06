@@ -33,21 +33,16 @@ const generateWaveData = (baseValue, parameterName, unit, color) => {
   });
 };
 
-/**
- * Bar Chart component
- * This component renders bar charts for each data series
- */
 const BarChart = ({ points, line, getScaledY, barWidth, gap }) => {
   return (
     <g>
       {points.map((point, index) => {
         const x = (index / (points.length - 1)) * 100;
         const y = getScaledY(point[line.key]);
-        const barHeight = 100 - y; // Height from the point to bottom
+        const barHeight = 100 - y;
         
         return (
           <g key={index}>
-            {/* Main Bar */}
             <rect
               x={`${x - barWidth/2}%`}
               y={`${y}%`}
@@ -55,11 +50,10 @@ const BarChart = ({ points, line, getScaledY, barWidth, gap }) => {
               height={`${barHeight}%`}
               fill={line.color}
               opacity="0.7"
-              rx="2" // Rounded corners
+              rx="2"
               ry="2"
             />
             
-            {/* Bar border */}
             <rect
               x={`${x - barWidth/2}%`}
               y={`${y}%`}
@@ -76,7 +70,6 @@ const BarChart = ({ points, line, getScaledY, barWidth, gap }) => {
         );
       })}
       
-      {/* Gradient Definition for bars */}
       <defs>
         <linearGradient id={`bar-gradient-${line.key}`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor={line.color} stopOpacity="0.8" />
@@ -87,7 +80,6 @@ const BarChart = ({ points, line, getScaledY, barWidth, gap }) => {
   );
 };
 
-// Main chart component
 const WaveBarChart = ({ title, data, lines }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
@@ -97,7 +89,6 @@ const WaveBarChart = ({ title, data, lines }) => {
     return <RemoveIcon sx={{ fontSize: 16, color: '#6b7280' }} />;
   };
 
-  // Calculate min and max values for all lines to have consistent scaling
   const allValues = useMemo(() => {
     const values = [];
     lines.forEach(line => {
@@ -111,12 +102,11 @@ const WaveBarChart = ({ title, data, lines }) => {
   const globalMin = Math.min(...allValues);
   const globalMax = Math.max(...allValues);
   const range = globalMax - globalMin;
-  const paddedMin = Math.max(0, globalMin - range * 0.1); // Don't go below 0 for bar charts
+  const paddedMin = Math.max(0, globalMin - range * 0.1);
   const paddedMax = globalMax + range * 0.1;
   const scaledRange = paddedMax - paddedMin;
 
   const getScaledY = (value) => {
-    // Ensure scaledRange is not zero to avoid division by zero
     if (scaledRange === 0) return 50;
     return 100 - ((value - paddedMin) / scaledRange) * 100;
   };
@@ -129,9 +119,8 @@ const WaveBarChart = ({ title, data, lines }) => {
     setHoveredPoint(null);
   };
 
-  // Calculate bar width based on number of lines and data points
-  const barWidth = 100 / data.length * 0.6; // 60% of available space
-  const gap = 100 / data.length * 0.4; // 40% gap
+  const barWidth = 100 / data.length * 0.6;
+  const gap = 100 / data.length * 0.4;
 
   return (
     <Paper
@@ -156,7 +145,6 @@ const WaveBarChart = ({ title, data, lines }) => {
         }
       }}
     >
-      {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5" fontWeight="600" sx={{ color: 'text.primary' }}>
           {title}
@@ -188,9 +176,7 @@ const WaveBarChart = ({ title, data, lines }) => {
         </Box>
       </Box>
 
-      {/* Chart Container */}
       <Box sx={{ position: 'relative', height: 340, width: '100%' }}>
-        {/* Grid Background */}
         <Box sx={{
           position: 'absolute',
           top: 0,
@@ -204,7 +190,6 @@ const WaveBarChart = ({ title, data, lines }) => {
           borderRadius: 1,
         }} />
 
-        {/* Hover vertical highlight */}
         {hoveredPoint && (
           <Box
             sx={{
@@ -221,7 +206,6 @@ const WaveBarChart = ({ title, data, lines }) => {
           />
         )}
 
-        {/* Chart Area */}
         <Box sx={{ position: 'absolute', top: 20, left: 10, right: 10, bottom: 30 }}>
           <svg width="100%" height="100%" style={{ position: 'relative', overflow: 'visible' }}>
             {lines.map((line) => (
@@ -235,7 +219,6 @@ const WaveBarChart = ({ title, data, lines }) => {
               />
             ))}
 
-            {/* Hover interaction areas */}
             {data.map((point, index) => {
               const x = (index / (data.length - 1)) * 100;
               
@@ -254,7 +237,6 @@ const WaveBarChart = ({ title, data, lines }) => {
               );
             })}
 
-            {/* Value labels on top of bars when hovered */}
             {hoveredPoint && lines.map((line) => {
               const x = (hoveredPoint.index / (data.length - 1)) * 100;
               const y = getScaledY(hoveredPoint.point[line.key]);
@@ -290,7 +272,6 @@ const WaveBarChart = ({ title, data, lines }) => {
           </svg>
         </Box>
 
-        {/* Hover Tooltip */}
         {hoveredPoint && (
           <Box
             sx={{
@@ -346,7 +327,6 @@ const WaveBarChart = ({ title, data, lines }) => {
           </Box>
         )}
 
-        {/* X-axis labels */}
         <Box sx={{ 
           position: 'absolute', 
           bottom: 0, 
@@ -372,7 +352,6 @@ const WaveBarChart = ({ title, data, lines }) => {
           ))}
         </Box>
 
-        {/* Y-axis labels */}
         <Box sx={{ 
           position: 'absolute', 
           left: -10,
@@ -410,7 +389,6 @@ const WaveBarChart = ({ title, data, lines }) => {
         </Box>
       </Box>
 
-      {/* Legend */}
       <Box sx={{ display: 'flex', gap: 3, mt: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
         {lines.map((line) => (
           <Box 
@@ -449,14 +427,14 @@ export default function HistoricalCharts({ transformerData }) {
 
     const tr = transformerData;
     
-    // Generate wave data for each parameter
+    // Generate wave data for each parameter using actual data
     const temperatureData = generateWaveData(tr.Temperature || 35, 'Temperature', '°C', '#ef4444');
     const oilLevelData = generateWaveData(tr.OilLevel || 99, 'OilLevel', '%', '#3b82f6');
-    const voltageData = generateWaveData(tr.Voltage || 12, 'Voltage', 'kV', '#10b981');
-    const currentData = generateWaveData(tr.Current || 2.5, 'Current', 'A', '#f59e0b');
-    const h2Data = generateWaveData(tr.H2 || 10, 'H2', 'ppm', '#8b5cf6');
-    const coData = generateWaveData(tr.CO || 22, 'CO', 'ppm', '#f97316');
-    const ch4Data = generateWaveData(tr.CH4 || 21, 'CH4', 'ppm', '#06b6d4');
+    const voltageData = generateWaveData(tr.OutputVoltage || 32, 'Voltage', 'V', '#10b981');
+    const currentData = generateWaveData(tr.OutputCurrent || 0.14, 'Current', 'A', '#f59e0b');
+    const h2Data = generateWaveData(tr.H2 || 0, 'H2', 'ppm', '#8b5cf6');
+    const coData = generateWaveData(tr.CO || 0.02, 'CO', 'ppm', '#f97316');
+    const ch4Data = generateWaveData(tr.CH4 || 0.04, 'CH4', 'ppm', '#06b6d4');
 
     // Merge all data into one array
     return temperatureData.map((tempPoint, index) => ({
@@ -504,7 +482,7 @@ export default function HistoricalCharts({ transformerData }) {
         title="Electrical Parameters Trends"
         data={waveData}
         lines={[
-          { key: 'Voltage', name: 'Output Voltage', color: '#10b981', unit: 'kV' },
+          { key: 'Voltage', name: 'Output Voltage', color: '#10b981', unit: 'V' },
           { key: 'Current', name: 'Output Current', color: '#f59e0b', unit: 'A' },
         ]}
       />
